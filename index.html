@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Competition Scoring System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .page-title {
+            color: #0d6efd;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .score-slider {
+            margin: 20px 0;
+        }
+        .score-value {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .user-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: #495057;
+            border-radius: 5px;
+        }
+        .logout-btn {
+            color: #dc3545;
+            background: none;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <h3 class="mb-4">Bridge Competition</h3>
+                <div id="nav-links">
+                    <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+                    <a href="#" onclick="showPage('scores')">View Scores</a>
+                </div>
+                <div class="user-info" id="user-info" style="display: none;">
+                    <span id="username-display"></span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Login Page -->
+                <div id="login-page">
+                    <h2 class="page-title">Bridge Competition Scoring System</h2>
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h3 class="card-title text-center mb-4">Login</h3>
+                                    <form id="login-form">
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="username" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="password" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard -->
+                <div id="admin-dashboard" style="display: none;">
+                    <h2 class="page-title">Admin Dashboard</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h3 class="card-title">Add New User</h3>
+                                    <form id="add-user-form">
+                                        <div class="mb-3">
+                                            <label for="new-username" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="new-username" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="new-password" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="new-password" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="role" class="form-label">Role</label>
+                                            <select class="form-select" id="role" required>
+                                                <option value="judge">Judge</option>
+                                                <option value="volunteer">Volunteer</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Add User</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h3 class="card-title">User Management</h3>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Role</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="users-table"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Judge Dashboard -->
+                <div id="judge-dashboard" style="display: none;">
+                    <h2 class="page-title">Judge Dashboard</h2>
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h3 class="card-title">Submit Score</h3>
+                                    <form id="score-form">
+                                        <div class="mb-3">
+                                            <label for="team-number" class="form-label">Team Number</label>
+                                            <input type="number" class="form-control" id="team-number" required>
+                                        </div>
+                                        <div class="score-slider">
+                                            <label for="criteria1" class="form-label">Criteria 1</label>
+                                            <input type="range" class="form-range" id="criteria1" min="0" max="10" step="0.5">
+                                            <div class="score-value" id="criteria1-value">5</div>
+                                        </div>
+                                        <div class="score-slider">
+                                            <label for="criteria2" class="form-label">Criteria 2</label>
+                                            <input type="range" class="form-range" id="criteria2" min="0" max="10" step="0.5">
+                                            <div class="score-value" id="criteria2-value">5</div>
+                                        </div>
+                                        <div class="score-slider">
+                                            <label for="criteria3" class="form-label">Criteria 3</label>
+                                            <input type="range" class="form-range" id="criteria3" min="0" max="10" step="0.5">
+                                            <div class="score-value" id="criteria3-value">5</div>
+                                        </div>
+                                        <div class="score-slider">
+                                            <label for="criteria4" class="form-label">Criteria 4</label>
+                                            <input type="range" class="form-range" id="criteria4" min="0" max="10" step="0.5">
+                                            <div class="score-value" id="criteria4-value">5</div>
+                                        </div>
+                                        <div class="score-slider">
+                                            <label for="criteria5" class="form-label">Criteria 5</label>
+                                            <input type="range" class="form-range" id="criteria5" min="0" max="10" step="0.5">
+                                            <div class="score-value" id="criteria5-value">5</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="feedback" class="form-label">Feedback</label>
+                                            <textarea class="form-control" id="feedback" rows="3"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit Score</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scores Overview -->
+                <div id="scores-overview" style="display: none;">
+                    <h2 class="page-title">Scores Overview</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="team-filter" placeholder="Filter by team number">
+                                <button class="btn btn-outline-secondary" type="button" onclick="filterScores()">Filter</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="card-title">Team Averages</h3>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Team</th>
+                                            <th>Criteria 1</th>
+                                            <th>Criteria 2</th>
+                                            <th>Criteria 3</th>
+                                            <th>Criteria 4</th>
+                                            <th>Criteria 5</th>
+                                            <th>Total Average</th>
+                                            <th>Judges</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="averages-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title">Individual Scores</h3>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Team</th>
+                                            <th>Judge</th>
+                                            <th>Criteria 1</th>
+                                            <th>Criteria 2</th>
+                                            <th>Criteria 3</th>
+                                            <th>Criteria 4</th>
+                                            <th>Criteria 5</th>
+                                            <th>Total</th>
+                                            <th>Feedback</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scores-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize local storage with default admin user if not exists
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify([{
+                username: 'admin',
+                password: 'admin123',
+                role: 'admin'
+            }]));
+        }
+
+        // Initialize scores array if not exists
+        if (!localStorage.getItem('scores')) {
+            localStorage.setItem('scores', JSON.stringify([]));
+        }
+
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showPage(user.role === 'admin' ? 'admin-dashboard' : 'judge-dashboard');
+                updateUserInfo(user);
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+
+        // Add user form handler
+        document.getElementById('add-user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('new-username').value;
+            const password = document.getElementById('new-password').value;
+            const role = document.getElementById('role').value;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            if (users.some(u => u.username === username)) {
+                alert('Username already exists');
+                return;
+            }
+            
+            users.push({ username, password, role });
+            localStorage.setItem('users', JSON.stringify(users));
+            updateUsersTable();
+            this.reset();
+        });
+
+        // Score form handler
+        document.getElementById('score-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const score = {
+                team_number: parseInt(document.getElementById('team-number').value),
+                judge: currentUser.username,
+                criteria1: parseFloat(document.getElementById('criteria1').value),
+                criteria2: parseFloat(document.getElementById('criteria2').value),
+                criteria3: parseFloat(document.getElementById('criteria3').value),
+                criteria4: parseFloat(document.getElementById('criteria4').value),
+                criteria5: parseFloat(document.getElementById('criteria5').value),
+                feedback: document.getElementById('feedback').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            const scores = JSON.parse(localStorage.getItem('scores'));
+            scores.push(score);
+            localStorage.setItem('scores', JSON.stringify(scores));
+            
+            updateScoresOverview();
+            this.reset();
+            alert('Score submitted successfully!');
+        });
+
+        // Update score values when sliders change
+        ['criteria1', 'criteria2', 'criteria3', 'criteria4', 'criteria5'].forEach(criteria => {
+            document.getElementById(criteria).addEventListener('input', function() {
+                document.getElementById(`${criteria}-value`).textContent = this.value;
+            });
+        });
+
+        // Show/hide pages
+        function showPage(pageId) {
+            ['login-page', 'admin-dashboard', 'judge-dashboard', 'scores-overview'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById(pageId).style.display = 'block';
+        }
+
+        // Update user info in sidebar
+        function updateUserInfo(user) {
+            const userInfo = document.getElementById('user-info');
+            const usernameDisplay = document.getElementById('username-display');
+            userInfo.style.display = 'block';
+            usernameDisplay.textContent = `Logged in as: ${user.username}`;
+        }
+
+        // Update users table
+        function updateUsersTable() {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                if (user.username !== 'admin') {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.role}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.username}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        // Delete user
+        function deleteUser(username) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                const users = JSON.parse(localStorage.getItem('users'));
+                const newUsers = users.filter(u => u.username !== username);
+                localStorage.setItem('users', JSON.stringify(newUsers));
+                updateUsersTable();
+            }
+        }
+
+        // Update scores overview
+        function updateScoresOverview() {
+            const scores = JSON.parse(localStorage.getItem('scores'));
+            updateAveragesTable(scores);
+            updateScoresTable(scores);
+        }
+
+        // Update averages table
+        function updateAveragesTable(scores) {
+            const tbody = document.getElementById('averages-table');
+            tbody.innerHTML = '';
+            
+            const teamScores = {};
+            scores.forEach(score => {
+                if (!teamScores[score.team_number]) {
+                    teamScores[score.team_number] = {
+                        criteria1: [],
+                        criteria2: [],
+                        criteria3: [],
+                        criteria4: [],
+                        criteria5: []
+                    };
+                }
+                teamScores[score.team_number].criteria1.push(score.criteria1);
+                teamScores[score.team_number].criteria2.push(score.criteria2);
+                teamScores[score.team_number].criteria3.push(score.criteria3);
+                teamScores[score.team_number].criteria4.push(score.criteria4);
+                teamScores[score.team_number].criteria5.push(score.criteria5);
+            });
+            
+            Object.entries(teamScores).forEach(([team, scores]) => {
+                const avg1 = scores.criteria1.reduce((a, b) => a + b, 0) / scores.criteria1.length;
+                const avg2 = scores.criteria2.reduce((a, b) => a + b, 0) / scores.criteria2.length;
+                const avg3 = scores.criteria3.reduce((a, b) => a + b, 0) / scores.criteria3.length;
+                const avg4 = scores.criteria4.reduce((a, b) => a + b, 0) / scores.criteria4.length;
+                const avg5 = scores.criteria5.reduce((a, b) => a + b, 0) / scores.criteria5.length;
+                const totalAvg = (avg1 + avg2 + avg3 + avg4 + avg5) / 5;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${team}</td>
+                    <td>${avg1.toFixed(2)}</td>
+                    <td>${avg2.toFixed(2)}</td>
+                    <td>${avg3.toFixed(2)}</td>
+                    <td>${avg4.toFixed(2)}</td>
+                    <td>${avg5.toFixed(2)}</td>
+                    <td>${totalAvg.toFixed(2)}</td>
+                    <td>${scores.criteria1.length}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update scores table
+        function updateScoresTable(scores) {
+            const tbody = document.getElementById('scores-table');
+            tbody.innerHTML = '';
+            
+            scores.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            scores.forEach(score => {
+                const total = score.criteria1 + score.criteria2 + score.criteria3 + 
+                            score.criteria4 + score.criteria5;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${score.team_number}</td>
+                    <td>${score.judge}</td>
+                    <td>${score.criteria1}</td>
+                    <td>${score.criteria2}</td>
+                    <td>${score.criteria3}</td>
+                    <td>${score.criteria4}</td>
+                    <td>${score.criteria5}</td>
+                    <td>${total.toFixed(1)}</td>
+                    <td>${score.feedback}</td>
+                    <td>${new Date(score.timestamp).toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Filter scores by team number
+        function filterScores() {
+            const teamNumber = document.getElementById('team-filter').value;
+            const scores = JSON.parse(localStorage.getItem('scores'));
+            const filteredScores = teamNumber ? 
+                scores.filter(s => s.team_number.toString() === teamNumber) : 
+                scores;
+            updateAveragesTable(filteredScores);
+            updateScoresTable(filteredScores);
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('currentUser');
+            showPage('login-page');
+            document.getElementById('user-info').style.display = 'none';
+        }
+
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser) {
+            showPage(currentUser.role === 'admin' ? 'admin-dashboard' : 'judge-dashboard');
+            updateUserInfo(currentUser);
+            updateUsersTable();
+            updateScoresOverview();
+        }
+    </script>
+</body>
+</html> 
